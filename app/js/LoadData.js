@@ -18,6 +18,8 @@ function setData(data) {
   numberOfCancerBarChart(data);
   locationBarGraph(data);
   genderPieChart(data);
+  racePieChart(data);
+  severityPieChart(data);
 };
 
 function numberOfCancerBarChart(data) {
@@ -151,7 +153,6 @@ function locationBarGraph(data)  {
   
 }
 
-
 function genderPieChart(data)  {
   // need x and y in points
   // x css_diagnosis_discription
@@ -177,14 +178,6 @@ function genderPieChart(data)  {
   series.sort(dynamicSort("y", "reverse"));
   numberCount = series;
 
-  // JSC.Chart('gender', {
-  //   type: 'horizontal column',
-  //   series: [
-  //      {
-  //         points: numberCount
-  //      }
-  //   ]
-  // });
   JSC.Chart('gender', { 
     debug: true, 
     title_position: 'center', 
@@ -200,6 +193,104 @@ function genderPieChart(data)  {
     defaultPoint_label_text: '<b>%name</b>', 
     title_label_text: 'Genders of Patients', 
     yAxis: { label_text: 'Gender', formatString: 'n' }, 
+    series: [ 
+      { 
+        name: 'Patients', 
+        points: numberCount
+      } 
+    ] 
+  }); 
+}
+
+function racePieChart(data)  {
+  // need x and y in points
+  // x css_diagnosis_discription
+  // y counts of that type of cancer 
+
+  let raceArray = [];
+  for (let location of data) {
+    if(raceArray.indexOf(location) === -1) {
+      raceArray.push(location.race);
+    }
+  }
+  raceArray = reduceArrayToUniqueItems(raceArray);
+  
+  let series = [];
+  
+  for (let x of raceArray) {
+    let point = {x: '', y: ''};
+    point.x=x ? x : "undefined",
+    point.y=data.filter(z =>z.race === x).length;
+    series.push(point);
+  }
+  
+  series.sort(dynamicSort("y", "reverse"));
+  numberCount = series;
+
+  JSC.Chart('race', { 
+    debug: true, 
+    title_position: 'center', 
+    legend: { 
+      template: 
+        '%value {%percentOfTotal:n1}% %icon %name', 
+      position: 'inside left bottom'
+    }, 
+    defaultSeries: { 
+      type: 'pie', 
+      pointSelection: true
+    }, 
+    defaultPoint_label_text: '<b>%name</b>', 
+    title_label_text: 'Race of Patients', 
+    yAxis: { label_text: 'Race', formatString: 'n' }, 
+    series: [ 
+      { 
+        name: 'Patients', 
+        points: numberCount
+      } 
+    ] 
+  }); 
+}
+
+function severityPieChart(data)  {
+  // need x and y in points
+  // x css_diagnosis_discription
+  // y counts of that type of cancer 
+
+  let severityArray = [];
+  for (let location of data) {
+    if(severityArray.indexOf(location) === -1) {
+      severityArray.push(location.apr_risk_of_mortality);
+    }
+  }
+  severityArray = reduceArrayToUniqueItems(severityArray);
+  
+  let series = [];
+  
+  for (let x of severityArray) {
+    let point = {x: '', y: ''};
+    point.x=x ? x : "undefined",
+    point.y=data.filter(z =>z.apr_risk_of_mortality === x).length;
+    series.push(point);
+  }
+  
+  series.sort(dynamicSort("y", "reverse"));
+  numberCount = series;
+
+  JSC.Chart('severity', { 
+    debug: true, 
+    title_position: 'center', 
+    legend: { 
+      template: 
+        '%value {%percentOfTotal:n1}% %icon %name', 
+      position: 'inside left bottom'
+    }, 
+    defaultSeries: { 
+      type: 'pie', 
+      pointSelection: true
+    }, 
+    defaultPoint_label_text: '<b>%name</b>', 
+    title_label_text: 'Risk of Mortality of During Visit', 
+    yAxis: { label_text: 'Severity', formatString: 'n' }, 
     series: [ 
       { 
         name: 'Patients', 
