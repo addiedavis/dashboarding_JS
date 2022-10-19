@@ -1,6 +1,6 @@
 To view please open "showCharts.html" in any browser.
 I used chrome while checking the code / data.
-
+ 
 # internshipChallenge
 See original post:
 https://github.com/episphere/internshipChallenge#readme
