@@ -13,11 +13,14 @@ let heatMap = []
 let numberCount = []
 
 function setData(data) {
+  console.log(data);
   cancerTypeAndAgeGroupHeatMap(data);
-  numberOfCancer(data);
+  numberOfCancerBarChart(data);
+  locationBarGraph(data);
+  genderPieChart(data);
 };
 
-function numberOfCancer(data) {
+function numberOfCancerBarChart(data) {
   // need x and y in points
   // x css_diagnosis_discription
   // y counts of that type of cancer 
@@ -29,7 +32,7 @@ function numberOfCancer(data) {
     }
   }
 
-  cssDiagnosisArray = cssDiagnosisArray.filter((item, i, ar) => ar.indexOf(item) === i);
+  cssDiagnosisArray = reduceArrayToUniqueItems(cssDiagnosisArray)
   let series = [];
   
   for (let x of cssDiagnosisArray) {
@@ -38,10 +41,10 @@ function numberOfCancer(data) {
     point.y=data.filter(z =>z.ccs_diagnosis_description === x).length;
     series.push(point);
   }
-
+  
   numberCount = series;
 
-  JSC.Chart('chartDiv', {
+  JSC.Chart('amountsOfCancerTypes', {
     type: 'horizontal column',
     series: [
        {
@@ -71,8 +74,8 @@ function cancerTypeAndAgeGroupHeatMap(data) {
   }
   
   // make the ageArray and cssDiagnosisArray have unique values only
-  ageArray = ageArray.filter((item, i, ar) => ar.indexOf(item) === i);
-  cssDiagnosisArray = cssDiagnosisArray.filter((item, i, ar) => ar.indexOf(item) === i);
+  ageArray = reduceArrayToUniqueItems(ageArray);
+  cssDiagnosisArray = reduceArrayToUniqueItems(cssDiagnosisArray);
   let series = [];
   
   for (let diagnosis of cssDiagnosisArray) {
@@ -88,7 +91,7 @@ function cancerTypeAndAgeGroupHeatMap(data) {
   }
 
   // sort the series by the age groups so it goes youngest to oldest
-  series.sort(dynamicSort("x"));
+  series.sort(dynamicSort("x", false));
 
   heatMap = series;
   
@@ -112,11 +115,115 @@ function cancerTypeAndAgeGroupHeatMap(data) {
   });
 }
 
-function dynamicSort(key) {
+function locationBarGraph(data)  {
+  // need x and y in points
+  // x css_diagnosis_discription
+  // y counts of that type of cancer 
+
+  let serviceAreaArray = [];
+  for (let location of data) {
+    if(serviceAreaArray.indexOf(location) === -1) {
+      serviceAreaArray.push(location.health_service_area);
+    }
+  }
+  serviceAreaArray = reduceArrayToUniqueItems(serviceAreaArray);
+  
+  let series = [];
+  
+  for (let x of serviceAreaArray) {
+    let point = {x: '', y: ''};
+    point.x=x? x : "undefined",
+    point.y=data.filter(z =>z.health_service_area === x).length;
+    series.push(point);
+  }
+  
+  series.sort(dynamicSort("y", "reverse"));
+  numberCount = series;
+
+  JSC.Chart('amountsOfCancerPerLocation', {
+    type: 'horizontal column',
+    series: [
+       {
+          points: numberCount
+       }
+    ]
+  });
+  
+}
+
+
+function genderPieChart(data)  {
+  // need x and y in points
+  // x css_diagnosis_discription
+  // y counts of that type of cancer 
+
+  let genderArray = [];
+  for (let location of data) {
+    if(genderArray.indexOf(location) === -1) {
+      genderArray.push(location.gender);
+    }
+  }
+  genderArray = reduceArrayToUniqueItems(genderArray);
+  
+  let series = [];
+  
+  for (let x of genderArray) {
+    let point = {x: '', y: ''};
+    point.x=x ? x : "undefined",
+    point.y=data.filter(z =>z.gender === x).length;
+    series.push(point);
+  }
+  
+  series.sort(dynamicSort("y", "reverse"));
+  numberCount = series;
+
+  // JSC.Chart('gender', {
+  //   type: 'horizontal column',
+  //   series: [
+  //      {
+  //         points: numberCount
+  //      }
+  //   ]
+  // });
+  JSC.Chart('gender', { 
+    debug: true, 
+    title_position: 'center', 
+    legend: { 
+      template: 
+        '%value {%percentOfTotal:n1}% %icon %name', 
+      position: 'inside left bottom'
+    }, 
+    defaultSeries: { 
+      type: 'pie', 
+      pointSelection: true
+    }, 
+    defaultPoint_label_text: '<b>%name</b>', 
+    title_label_text: 'Genders of Patients', 
+    yAxis: { label_text: 'Gender', formatString: 'n' }, 
+    series: [ 
+      { 
+        name: 'Patients', 
+        points: numberCount
+      } 
+    ] 
+  }); 
+}
+
+function reduceArrayToUniqueItems(array) {
+  return array.filter((item, i, ar) => ar.indexOf(item) === i)
+}
+
+function dynamicSort(key, order) {
   var sortOrder = 1;
   if(key[0] === "-") {
     sortOrder = -1;
     key = key.substr(1);
+  }
+  if (order === "reverse") {
+    return function (a,b) {
+      var result = (a[key] > b[key]) ? -1 : (a[key] < b[key]) ? 1 : 0;
+      return result * sortOrder;
+    }
   }
   return function (a,b) {
     var result = (a[key] < b[key]) ? -1 : (a[key] > b[key]) ? 1 : 0;
